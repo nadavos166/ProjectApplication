@@ -43,21 +43,34 @@ public class MainActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
         @Override
         public void onActivityResult(ActivityResult result) {
+            Log.e("XXXXXXXXXXX", "+onActivityResult");
             if(result.getResultCode() == RESULT_OK){
+                Log.e("XXXXXXXXXXX", "+RESULT_OK");
                 Task<GoogleSignInAccount> accountTask = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
                 try{
                     GoogleSignInAccount signInAccount = accountTask.getResult(ApiException.class);
                     AuthCredential authCredential = GoogleAuthProvider.getCredential(signInAccount.getIdToken(),null);
+
+                    Log.e("XXXXXXXXXXX", "+authCredential");
+
+                    Log.e("XXXXXXXXXXX", authCredential.toString());
+
                     auth.signInWithCredential(authCredential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
+                            Log.e("XXXXXXXXXXX", "+onComplete");
+
                             if(task.isSuccessful()){
+                                Log.e("XXXXXXXXXXX", "+isSuccessful");
+
                                 auth = FirebaseAuth.getInstance();
                                 Glide.with(MainActivity.this).load(Objects.requireNonNull(auth.getCurrentUser()).getPhotoUrl()).into(iamgeview);
                                 name.setText(auth.getCurrentUser().getDisplayName());
                                 mail.setText(auth.getCurrentUser().getEmail());
                                 Toast.makeText(MainActivity.this,"signed in succefully",Toast.LENGTH_SHORT).show();
                             } else{
+                                Log.e("XXXXXXXXXXX", "+failed");
+
                                 Toast.makeText(MainActivity.this,"signed in failed" + task.getException(),Toast.LENGTH_SHORT).show();
                             }
                         }

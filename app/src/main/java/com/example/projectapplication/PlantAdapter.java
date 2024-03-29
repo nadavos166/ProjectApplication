@@ -1,6 +1,7 @@
 package com.example.projectapplication;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,12 +24,14 @@ public class PlantAdapter extends RecyclerView.Adapter<PlantAdapter.ViewHolder> 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        Log.e("XXXXXXXXXXX", "+onActivityResult");
         View view = LayoutInflater.from(context).inflate(R.layout.plant_list_item,parent,false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        Log.e("XXXXXXXXXXX", "+onBindViewHolder");
         holder.name.setText(arraylist.get(position).getName());
         holder.place.setText(arraylist.get(position).getPlace());
         holder.time.setText(arraylist.get(position).getTime());

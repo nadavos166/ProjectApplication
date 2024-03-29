@@ -7,6 +7,24 @@ public class Plant
     String place;
     String time;
     int wateramount;
+
+
+    public Plant(String key, String name, String place, String time, int wateramount) {
+        this.key = key;
+        this.name = name;
+        this.place = place;
+        this.time = time;
+        this.wateramount = wateramount;
+    }
+    public Plant( String name, String place, String time, int wateramount) {
+        this.name = name;
+        this.place = place;
+        this.time = time;
+        this.wateramount = wateramount;
+    }
+
+
+
     public Plant(){
 
     }
