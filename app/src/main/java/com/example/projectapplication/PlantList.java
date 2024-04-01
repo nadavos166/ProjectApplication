@@ -6,8 +6,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -64,26 +66,40 @@ public class PlantList extends AppCompatActivity {
                                     timelayout.setError("this field is required");
                                 }
                                 else{
+
+                                    Log.e("XXXXX", "Line 70");
                                     ProgressDialog dialog = new ProgressDialog(PlantList.this);
                                     dialog.setMessage("storing in database");
                                     dialog.show();
+
+                                    Log.e("XXXXX", "Line 75");
                                     Plant plant = new Plant();
                                     plant.setName(etname.getText().toString());
                                     plant.setPlace(etplace.getText().toString());
                                     plant.setTime(ettime.getText().toString());
                                     plant.setWateramount(Integer.parseInt(etwater.getText().toString()));
+
+                                    Log.e("XXXXX", "Line 83 " + database.getReference().child("plants").toString());
+
                                     database.getReference().child("plants").push().setValue(plant).addOnSuccessListener(new OnSuccessListener<Void>() {
                                         @Override
                                         public void onSuccess(Void unused) {
+                                            Log.e("XXXXX","Line 87");
                                             dialog.dismiss();
+                                            Log.e("XXX","Line 89");
                                             dialogInterface.dismiss();
+                                            Log.e("XXXXXX","line 91");
                                             Toast.makeText(PlantList.this,"saved succefully",Toast.LENGTH_SHORT).show();
+                                            Log.e("XXXXX","Line 93");
                                         }
+
                                     }).addOnFailureListener(new OnFailureListener() {
                                         @Override
                                         public void onFailure(@NonNull Exception e) {
+                                            Log.e("XXXXXX","Line 98");
                                             dialog.dismiss();
-                                            Toast.makeText(PlantList.this,"save failed",Toast.LENGTH_SHORT).show();
+                                            Log.e("XXXXXX","Line 100");
+                                            Toast.makeText(PlantList.this,"there was a problem saving",Toast.LENGTH_SHORT).show();
                                         }
                                     });
                                 }
@@ -101,6 +117,10 @@ public class PlantList extends AppCompatActivity {
         });
         TextView empty = findViewById(R.id.empty);
         RecyclerView recyclerView = findViewById(R.id.recycler);
+        PlantAdapter adapter = new PlantAdapter(PlantList.this,new ArrayList<Plant>());
+        recyclerView.setAdapter(adapter);
+
+
         database.getReference().child("plants").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -109,8 +129,10 @@ public class PlantList extends AppCompatActivity {
                     Plant plant = dataSnapshot.getValue(Plant.class);
                     Objects.requireNonNull(plant).setKey(dataSnapshot.getKey());
                     arraylist.add(plant);
-
                 }
+                adapter.updateData(arraylist); // Assuming your adapter has a method to update its data
+
+
                 if(arraylist.isEmpty()){
                     empty.setVisibility(View.VISIBLE);
                     recyclerView.setVisibility(View.GONE);
@@ -119,9 +141,7 @@ public class PlantList extends AppCompatActivity {
                     recyclerView.setVisibility(View.VISIBLE);
 
                 }
-                PlantAdapter adapter= new PlantAdapter(PlantList.this,arraylist);
-                recyclerView.setAdapter(adapter);
-                adapter.setOnItemClickListener(new PlantAdapter.OnItemClickListener() {
+                ((PlantAdapter) adapter).setOnItemClickListener(new PlantAdapter.OnItemClickListener() {
                     @Override
                     public void onClick(Plant plant) {
                         View view = LayoutInflater.from(PlantList.this).inflate(R.layout.add_plant_dialog,null);
@@ -139,7 +159,14 @@ public class PlantList extends AppCompatActivity {
                         etplace.setText(plant.getPlace());
                         ettime.setText(plant.getTime());
                         etwater.setText(plant.getWateramount());
+                        Log.e("XXXXXXX", "before new progressDialog");
+
+
                         ProgressDialog progressDialog = new ProgressDialog(PlantList.this);
+
+
+                        Log.e("XXXXXXX", "before Alert dialog builder");
+
                         AlertDialog alertDialog = new AlertDialog.Builder(PlantList.this)
                                 .setTitle("edit")
                                 .setView(view)
@@ -153,14 +180,20 @@ public class PlantList extends AppCompatActivity {
                                             timelayout.setError("this field is required");
                                         }
                                         else{
+
+                                            Log.e("XXXXXXX", "before progress dialog");
+
                                             ProgressDialog dialog = new ProgressDialog(PlantList.this);
                                             progressDialog.setMessage("saving...");
                                             progressDialog.show();
+
+                                            Log.e("XXXXXXX", "here");
                                             Plant plant = new Plant();
                                             plant.setName(etname.getText().toString());
                                             plant.setPlace(etplace.getText().toString());
                                             plant.setTime(ettime.getText().toString());
                                             plant.setWateramount(Integer.parseInt(etwater.getText().toString()));
+
                                             database.getReference().child("plants").child(plant.getKey()).setValue(plant).addOnSuccessListener(new OnSuccessListener<Void>() {
                                                 @Override
                                                 public void onSuccess(Void unused) {
@@ -215,5 +248,6 @@ public class PlantList extends AppCompatActivity {
 
             }
         });
+
     }
 }

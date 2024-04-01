@@ -46,6 +46,8 @@ public class PlantAdapter extends RecyclerView.Adapter<PlantAdapter.ViewHolder> 
         return arraylist.size();
     }
 
+
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView name,place,water;
         TextView time;
@@ -65,4 +67,9 @@ public class PlantAdapter extends RecyclerView.Adapter<PlantAdapter.ViewHolder> 
     public interface OnItemClickListener {
         void onClick(Plant plant);
     }
+    public void updateData(ArrayList<Plant> plants) {
+        this.arraylist = plants;
+        notifyDataSetChanged();
+    }
+
 }
