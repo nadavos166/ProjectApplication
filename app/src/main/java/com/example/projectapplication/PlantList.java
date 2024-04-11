@@ -6,18 +6,25 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -31,18 +38,82 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class PlantList extends AppCompatActivity {
+    private Uri imageUri;
+    private static final int IMAGE_CAPTURE_CODE = 100;
+    private static final int IMAGE_PICK_CODE = 101; // Adding this line for gallery
+    MaterialButton selectimage=findViewById(R.id.btn_selectimage);
+
+
+    private void showImagePickDialog() {
+        String[] options = {"Camera", "Gallery"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Choose Image Source");
+        builder.setItems(options, (dialog, which) -> {
+            if (which == 0) {
+                openCamera();
+                // Camera option
+            } else {
+                openGallery();
+                // Gallery option
+            }
+        });
+        builder.show();
+    }
+    // Camera Intent
+    private void openCamera() {
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.TITLE, "New Picture");
+        values.put(MediaStore.Images.Media.DESCRIPTION, "From the Camera");
+        imageUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+        startActivityForResult(cameraIntent, IMAGE_CAPTURE_CODE);
+    }
+
+    // Gallery Intent
+    private void openGallery() {
+        Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(galleryIntent, IMAGE_PICK_CODE);
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            if (requestCode == IMAGE_CAPTURE_CODE) {
+                ImageView imageView = findViewById(R.id.imageofplant);
+                imageView.setImageURI(imageUri);
+            } else if (requestCode == IMAGE_PICK_CODE) {
+                Uri selectedImageUri = data.getData();
+                ImageView imageView = findViewById(R.id.imageofplant);
+                imageView.setImageURI(selectedImageUri);
+            }
+        }
+    }
+
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plant_list);
+
+
+
         FirebaseApp.initializeApp(PlantList.this);
         FirebaseDatabase database=FirebaseDatabase.getInstance();
         FloatingActionButton add = findViewById(R.id.addplant);
+
+
         add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 View view1 = LayoutInflater.from(PlantList.this).inflate(R.layout.add_plant_dialog,null);
+                selectimage.setOnClickListener(view2 -> {
+
+                    showImagePickDialog();
+                });
                 TextInputLayout namelayout,placelayout,timelayout,waterlayout;
                 namelayout=view1.findViewById(R.id.namelayout);
                 placelayout=view1.findViewById(R.id.placelayout);
@@ -53,6 +124,8 @@ public class PlantList extends AppCompatActivity {
                 etplace=view1.findViewById(R.id.et_place);
                 ettime=view1.findViewById(R.id.et_time);
                 etwater=view1.findViewById(R.id.et_wateramount);
+
+
                 AlertDialog alertDialog =  new AlertDialog.Builder(PlantList.this)
                       .setTitle("add")
                       .setView(view1)
@@ -114,7 +187,10 @@ public class PlantList extends AppCompatActivity {
                         .create();
                 alertDialog.show();
             }
+
+
         });
+
         TextView empty = findViewById(R.id.empty);
         RecyclerView recyclerView = findViewById(R.id.recycler);
         PlantAdapter adapter = new PlantAdapter(PlantList.this,new ArrayList<Plant>());
