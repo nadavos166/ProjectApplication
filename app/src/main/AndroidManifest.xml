@@ -13,6 +13,8 @@
     <uses-feature
         android:name="com.google.android.gms"
         android:required="true" />
+    <uses-feature android:name="android.hardware.camera"
+        android:required="true" />
 
     <application
         android:allowBackup="true"
