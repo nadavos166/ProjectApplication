@@ -41,15 +41,18 @@ public class PlantList extends AppCompatActivity {
     private Uri imageUri;
     private static final int IMAGE_CAPTURE_CODE = 100;
     private static final int IMAGE_PICK_CODE = 101; // Adding this line for gallery
-    MaterialButton selectimage=findViewById(R.id.btn_selectimage);
 
-
+    //MaterialButton selectimage=findViewById(R.id.btn_selectimage);
     private void showImagePickDialog() {
+        Log.e("XXXXX", "line 47");
         String[] options = {"Camera", "Gallery"};
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        Log.e("XXXXX", "builder = " + builder);
+
         builder.setTitle("Choose Image Source");
         builder.setItems(options, (dialog, which) -> {
             if (which == 0) {
+                Log.e("XXXXX", "line 55");
                 openCamera();
                 // Camera option
             } else {
@@ -59,7 +62,6 @@ public class PlantList extends AppCompatActivity {
         });
         builder.show();
     }
-    // Camera Intent
     private void openCamera() {
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.TITLE, "New Picture");
@@ -75,7 +77,6 @@ public class PlantList extends AppCompatActivity {
         Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(galleryIntent, IMAGE_PICK_CODE);
     }
-
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
@@ -91,9 +92,6 @@ public class PlantList extends AppCompatActivity {
     }
 
 
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,13 +105,13 @@ public class PlantList extends AppCompatActivity {
 
 
         add.setOnClickListener(new View.OnClickListener() {
+
+
             @Override
             public void onClick(View view) {
                 View view1 = LayoutInflater.from(PlantList.this).inflate(R.layout.add_plant_dialog,null);
-                selectimage.setOnClickListener(view2 -> {
 
-                    showImagePickDialog();
-                });
+
                 TextInputLayout namelayout,placelayout,timelayout,waterlayout;
                 namelayout=view1.findViewById(R.id.namelayout);
                 placelayout=view1.findViewById(R.id.placelayout);
@@ -139,7 +137,7 @@ public class PlantList extends AppCompatActivity {
                                     timelayout.setError("this field is required");
                                 }
                                 else{
-
+                                    openCamera();
                                     Log.e("XXXXX", "Line 70");
                                     ProgressDialog dialog = new ProgressDialog(PlantList.this);
                                     dialog.setMessage("storing in database");

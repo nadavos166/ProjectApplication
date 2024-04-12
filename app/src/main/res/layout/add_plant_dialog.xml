@@ -70,7 +70,7 @@
         android:layout_centerHorizontal="true"
         android:id="@+id/btn_selectimage"
         android:layout_below="@+id/wateramountlayout"
-        android:text="select image from gallery"/>
+        android:text="select image"/>
 
 
 </RelativeLayout>
