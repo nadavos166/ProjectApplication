@@ -2,6 +2,8 @@ package com.example.projectapplication;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.AlertDialog;
@@ -10,6 +12,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -41,6 +44,20 @@ public class PlantList extends AppCompatActivity {
     private Uri imageUri;
     private static final int IMAGE_CAPTURE_CODE = 100;
     private static final int IMAGE_PICK_CODE = 101; // Adding this line for gallery
+    private static final int MY_PERMISSIONS_REQUEST_CAMERA = 102;
+
+    public void onRequestPermissionsResult(int requestCode,
+                                           String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == MY_PERMISSIONS_REQUEST_CAMERA) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission was granted, you can now access the camera.
+            } else {
+                // Permission denied, disable the functionality that depends on this permission.
+            }
+        }
+    }
+
 
     //MaterialButton selectimage=findViewById(R.id.btn_selectimage);
     private void showImagePickDialog() {
@@ -62,6 +79,7 @@ public class PlantList extends AppCompatActivity {
         });
         builder.show();
     }
+
     private void openCamera() {
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.TITLE, "New Picture");
@@ -77,6 +95,7 @@ public class PlantList extends AppCompatActivity {
         Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(galleryIntent, IMAGE_PICK_CODE);
     }
+
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
@@ -98,10 +117,10 @@ public class PlantList extends AppCompatActivity {
         setContentView(R.layout.activity_plant_list);
 
 
-
         FirebaseApp.initializeApp(PlantList.this);
-        FirebaseDatabase database=FirebaseDatabase.getInstance();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
         FloatingActionButton add = findViewById(R.id.addplant);
+
 
 
         add.setOnClickListener(new View.OnClickListener() {
