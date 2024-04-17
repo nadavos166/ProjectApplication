@@ -1,10 +1,12 @@
 package com.example.projectapplication;
 
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -32,12 +34,20 @@ public class PlantAdapter extends RecyclerView.Adapter<PlantAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Log.e("XXXXXXXXXXX", "+onBindViewHolder");
+        Plant plant = arraylist.get(position);  // Define the local variable 'plant' here
         holder.name.setText(arraylist.get(position).getName());
         holder.place.setText(arraylist.get(position).getPlace());
         holder.time.setText(arraylist.get(position).getTime());
         holder.water.setText(String.valueOf(arraylist.get(position).getWateramount()));
-        holder.itemView.setOnClickListener(view -> onItemClickListener.onClick(arraylist.get(position)));
-
+        if (plant.getImageUrl() != null && !plant.getImageUrl().isEmpty()) {
+            Uri imageUri = Uri.parse(plant.getImageUrl());
+            holder.imageView.setImageURI(imageUri);
+        }
+        holder.itemView.setOnClickListener(view -> {
+            if (onItemClickListener != null) {
+                onItemClickListener.onClick(plant);
+            }
+        });
 
     }
 
@@ -51,12 +61,15 @@ public class PlantAdapter extends RecyclerView.Adapter<PlantAdapter.ViewHolder> 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView name,place,water;
         TextView time;
+        public ImageView imageView;
+
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             name= itemView.findViewById(R.id.list_item_name);
             place=itemView.findViewById(R.id.list_item_place);
             water=itemView.findViewById(R.id.list_item_wateramount);
             time=itemView.findViewById(R.id.list_item_time);
+            imageView=itemView.findViewById(R.id.imageofplant);
         }
     }
 
