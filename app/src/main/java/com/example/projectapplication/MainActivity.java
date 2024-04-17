@@ -78,6 +78,8 @@ public class MainActivity extends AppCompatActivity {
                 } catch (ApiException e) {
                     e.printStackTrace();
                 }
+            }else{
+                Log.e("XXXXXXXXXXX",result.toString());
             }
         }
     });
