@@ -112,7 +112,8 @@ public class PlantList extends AppCompatActivity {
                         etname.setText(plant.getName());
                         etplace.setText(plant.getPlace());
                         ettime.setText(plant.getTime());
-                        etwater.setText(plant.getWateramount());
+                        //(Integer.parseInt(etwater.getText().toString()));
+                        etwater.setText(Integer.parseInt(String.valueOf(plant.getWateramount())));
                         Log.e("XXXXXXX", "before new progressDialog");
 
 
@@ -245,9 +246,9 @@ public class PlantList extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         Log.d("CameraResult", "Request code: " + requestCode + ", Result code: " + resultCode);
 
-        if (requestCode == IMAGE_CAPTURE_CODE && resultCode == RESULT_OK) {
+
             showAddPlantDialog(imageUri.toString());
-        }
+
     }
     private void showAddPlantDialog(String imageUri) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -276,33 +277,45 @@ public class PlantList extends AppCompatActivity {
                 .setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.cancel())
                 .show();
     }
+
+    private void openCamera() {
+        // Check both CAMERA and WRITE_EXTERNAL_STORAGE permissions
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+
+            // Permission is not granted
+            // Request the CAMERA and WRITE_EXTERNAL_STORAGE permissions
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    MY_PERMISSIONS_REQUEST_CAMERA);
+        } else {
+            // Permission has already been granted, open the camera
+            launchCamera();
+        }
+    }
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == MY_PERMISSIONS_REQUEST_CAMERA) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                openCamera();
+                // Permission was granted
+                launchCamera();
             } else {
+                // Permission denied
                 Toast.makeText(this, "Camera permission is necessary", Toast.LENGTH_SHORT).show();
             }
         }
     }
-    private void openCamera() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    MY_PERMISSIONS_REQUEST_CAMERA);
-        } else {
-            File imagePath = new File(getExternalFilesDir(null), "Images");
-            if (!imagePath.exists()) imagePath.mkdirs();
-            String imageName = "plant_" + System.currentTimeMillis() + ".jpg";
-            File newFile = new File(imagePath, imageName);
-            imageUri = FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".provider", newFile);
-            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-            cameraIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-            startActivityForResult(cameraIntent, IMAGE_CAPTURE_CODE);
-        }
+    private void launchCamera() {
+        File imagePath = new File(getExternalFilesDir(null), "Images");
+        if (!imagePath.exists()) imagePath.mkdirs();
+        String imageName = "plant_" + System.currentTimeMillis() + ".jpg";
+        File newFile = new File(imagePath, imageName);
+        imageUri = FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".provider", newFile);
+        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+        cameraIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        startActivityForResult(cameraIntent, IMAGE_CAPTURE_CODE);
     }
+
 }

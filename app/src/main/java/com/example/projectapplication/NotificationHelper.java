@@ -25,7 +25,7 @@ public class NotificationHelper {
         }
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "PLANT_CHANNEL_ID")
-                .setSmallIcon(R.drawable.iic_plant_notification)  // Make sure you have this drawable in your resources
+                .setSmallIcon(R.drawable.ic_plant_notification)  // Make sure you have this drawable in your resources
                 .setContentTitle(title)
                 .setContentText(content)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT);
