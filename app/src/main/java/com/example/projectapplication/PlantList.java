@@ -22,6 +22,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -71,6 +72,12 @@ public class PlantList extends AppCompatActivity {
         TextView empty = findViewById(R.id.empty);
         RecyclerView recyclerView = findViewById(R.id.recycler);
         PlantAdapter adapter = new PlantAdapter(PlantList.this, new ArrayList<Plant>());
+        adapter.setOnItemClickListener(new PlantAdapter.OnItemClickListener() {
+            @Override
+            public void onClick(Plant plant) {
+                showAddPlantDialog(plant);
+            }
+        });
         recyclerView.setAdapter(adapter);
 
         if (user != null) {
@@ -148,56 +155,14 @@ public class PlantList extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == IMAGE_CAPTURE_CODE && resultCode == RESULT_OK) {
             // imageUri is already set in the launchCamera method
-            showAddPlantDialog();
+            showAddPlantDialog(null);
         } else {
             imageUri = null; // Reset or handle the case where image capture failed
         }
     }
 
-    private void showAddPlantDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.add_plant_dialog, null);
-        TextInputEditText etName = dialogView.findViewById(R.id.et_name);
-        TextInputEditText etPlace = dialogView.findViewById(R.id.et_place);
-        TextInputEditText etTime = dialogView.findViewById(R.id.et_time);
-        TextInputEditText etWaterAmount = dialogView.findViewById(R.id.et_wateramount);
-        builder.setView(dialogView)
-                .setPositiveButton("Add", (dialogInterface, i) -> {
-                    String name = etName.getText().toString();
-                    String place = etPlace.getText().toString();
-                    String time = etTime.getText().toString();
-                    int waterAmount = Integer.parseInt(etWaterAmount.getText().toString());
-
-                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                    if (user != null) {
-                        String userId = user.getUid();
-                        DatabaseReference userPlantsRef = FirebaseDatabase.getInstance().getReference()
-                                .child("users").child(userId).child("plants");
-                        String plantId = userPlantsRef.push().getKey(); // Create a new plant ID
-                        Plant plant = new Plant(name, place, time, waterAmount, ""); // Assuming you have a constructor and handling image separately
-                        if (imageUri != null) {
-                            plant.setImageUrl(imageUri.toString());
-                            imageUri = null; // Reset imageUri after use
-                        } else {
-                            plant.setImageUrl(""); // Set a default or placeholder image URL
-                        }
-
-                        userPlantsRef.child(plantId).setValue(plant)
-                                .addOnSuccessListener(aVoid -> {
-                                    Toast.makeText(PlantList.this, "Plant added successfully", Toast.LENGTH_SHORT).show();
-                                })
-                                .addOnFailureListener(e -> {
-                                    Toast.makeText(PlantList.this, "Failed to add plant", Toast.LENGTH_SHORT).show();
-                                });
-                    }
-
-                    dialogInterface.dismiss();
-                })
-                .setNegativeButton("Cancel", (dialogInterface, i) -> {
-                    imageUri = null; // Reset imageUri if cancelled
-                    dialogInterface.cancel();
-                })
-                .show();
+    private void showAddPlantDialog(Plant selectedPlant) {
+        new AddPlantDialog(imageUri, selectedPlant).show(getSupportFragmentManager(), "");
     }
 
 
@@ -242,5 +207,6 @@ public class PlantList extends AppCompatActivity {
         cameraIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         startActivityForResult(cameraIntent, IMAGE_CAPTURE_CODE);
     }
+
 
 }

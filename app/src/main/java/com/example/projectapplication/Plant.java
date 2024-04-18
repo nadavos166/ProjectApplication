@@ -10,21 +10,34 @@ public class Plant
     String name;
     String place;
     String time;
+
+    long date;
     int wateramount;
     String imageurl;
-    public Plant(String key, String name, String place, String time, int wateramount,String imageurl) {
+
+    public long getDate() {
+        return date;
+    }
+
+    public void setDate(long date) {
+        this.date = date;
+    }
+
+    public Plant(String key, String name, String place, long date, String time, int wateramount, String imageurl) {
         this.key = key;
         this.name = name;
         this.place = place;
         this.time = time;
+        this.date = date;
         this.wateramount = wateramount;
         this.imageurl=imageurl;
     }
-    public Plant( String name, String place, String time, int wateramount,String imageurl) {
+    public Plant( String name, String place, long date, String time, int wateramount,String imageurl) {
         this.name = name;
         this.place = place;
         this.time = time;
         this.wateramount = wateramount;
+        this.date = date;
         this.imageurl=imageurl;
     }
     public String getImageUrl() {
@@ -83,16 +96,16 @@ public class Plant
         return wateramount;
     }
 
-    public static Calendar parseTimeToCalendar(String time) {
+    public Calendar parseDateToCalendar() {
         SimpleDateFormat format = new SimpleDateFormat("HH:mm", Locale.US);
         try {
             Date date = format.parse(time);
             Calendar calendar = Calendar.getInstance();
             if (date != null) {
-                calendar.setTime(date);
-                if (calendar.before(Calendar.getInstance())) {
-                    calendar.add(Calendar.DATE, 1);
-                }
+                calendar.clear();
+                calendar.setTimeInMillis(this.date);
+                calendar.set(Calendar.HOUR, date.getHours());
+                calendar.set(Calendar.MINUTE, date.getMinutes());
             }
             return calendar;
         } catch (Exception e) {
