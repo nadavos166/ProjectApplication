@@ -24,12 +24,6 @@ public class NotificationHelper {
             notificationManager.createNotificationChannel(channel);
         }
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "PLANT_CHANNEL_ID")
-                .setSmallIcon(R.drawable.ic_plant_notification)  // Make sure you have this drawable in your resources
-                .setContentTitle(title)
-                .setContentText(content)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
-        notificationManager.notify(title.hashCode(), builder.build());
     }
 }

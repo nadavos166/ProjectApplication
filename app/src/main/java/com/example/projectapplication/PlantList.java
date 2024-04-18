@@ -35,8 +35,11 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
@@ -53,158 +56,56 @@ public class PlantList extends AppCompatActivity {
     private static final int IMAGE_CAPTURE_CODE = 100;
     private static final int IMAGE_PICK_CODE = 101; // Adding this line for gallery
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 102;
+    private FirebaseAuth auth;  // Added Firebase Auth for user-specific data
+    private DatabaseReference userPlantsRef;  // Added to keep reference to user's plants
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plant_list);
-
-
         FirebaseApp.initializeApp(PlantList.this);
         FirebaseDatabase database = FirebaseDatabase.getInstance();
+        auth = FirebaseAuth.getInstance();  // Initialize FirebaseAuth instance
+        FirebaseUser user = auth.getCurrentUser();  // Get current logged in user
+
         FloatingActionButton add = findViewById(R.id.addplant);
-        Uri imageUri;
-
-
-
-        add.setOnClickListener(view -> openCamera());
-
-
         TextView empty = findViewById(R.id.empty);
         RecyclerView recyclerView = findViewById(R.id.recycler);
-        PlantAdapter adapter = new PlantAdapter(PlantList.this,new ArrayList<Plant>());
+        PlantAdapter adapter = new PlantAdapter(PlantList.this, new ArrayList<Plant>());
         recyclerView.setAdapter(adapter);
 
+        if (user != null) {
+            userPlantsRef = database.getReference().child("users").child(user.getUid()).child("plants");  // Change to user-specific path
 
-        database.getReference().child("plants").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                ArrayList<Plant> arraylist = new ArrayList<>();
-                for(DataSnapshot dataSnapshot: snapshot.getChildren()){
-                    Plant plant = dataSnapshot.getValue(Plant.class);
-                    Objects.requireNonNull(plant).setKey(dataSnapshot.getKey());
-                    arraylist.add(plant);
-                }
-                adapter.updateData(arraylist); // Assuming your adapter has a method to update its data
-
-
-                if(arraylist.isEmpty()){
-                    empty.setVisibility(View.VISIBLE);
-                    recyclerView.setVisibility(View.GONE);
-                }else {
-                    empty.setVisibility(View.GONE);
-                    recyclerView.setVisibility(View.VISIBLE);
-
-                }
-                ((PlantAdapter) adapter).setOnItemClickListener(new PlantAdapter.OnItemClickListener() {
-                    @Override
-                    public void onClick(Plant plant) {
-                        View view = LayoutInflater.from(PlantList.this).inflate(R.layout.add_plant_dialog,null);
-                        TextInputLayout  namelayout,placelayout,timelayout,waterlayout;
-                        TextInputEditText etname,etplace,ettime,etwater;
-                        etname = view.findViewById(R.id.et_name);
-                        etplace=view.findViewById(R.id.et_place);
-                        ettime=view.findViewById(R.id.et_time);
-                        etwater=view.findViewById(R.id.et_wateramount);
-                        namelayout=view.findViewById(R.id.namelayout);
-                        placelayout=view.findViewById(R.id.placelayout);
-                        timelayout=view.findViewById(R.id.timelayout);
-                        waterlayout=view.findViewById(R.id.wateramountlayout);
-                        etname.setText(plant.getName());
-                        etplace.setText(plant.getPlace());
-                        ettime.setText(plant.getTime());
-                        //(Integer.parseInt(etwater.getText().toString()));
-                        etwater.setText(Integer.parseInt(String.valueOf(plant.getWateramount())));
-                        Log.e("XXXXXXX", "before new progressDialog");
-
-
-                        ProgressDialog progressDialog = new ProgressDialog(PlantList.this);
-
-
-                        Log.e("XXXXXXX", "before Alert dialog builder");
-
-                        AlertDialog alertDialog = new AlertDialog.Builder(PlantList.this)
-                                .setTitle("edit")
-                                .setView(view)
-                                .setPositiveButton("save", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        if(Objects.requireNonNull(etname.getText()).toString().isEmpty()){
-                                            namelayout.setError("this field is requiered!");
-                                        }
-                                        else if(Objects.requireNonNull(ettime.getText()).toString().isEmpty()){
-                                            timelayout.setError("this field is required");
-                                        }
-                                        else{
-
-                                            Log.e("XXXXXXX", "before progress dialog");
-
-                                            ProgressDialog dialog = new ProgressDialog(PlantList.this);
-                                            progressDialog.setMessage("saving...");
-                                            progressDialog.show();
-
-                                            Log.e("XXXXXXX", "here");
-                                            Plant plant = new Plant();
-                                            plant.setName(etname.getText().toString());
-                                            plant.setPlace(etplace.getText().toString());
-                                            plant.setTime(ettime.getText().toString());
-                                            plant.setWateramount(Integer.parseInt(etwater.getText().toString()));
-
-                                            database.getReference().child("plants").child(plant.getKey()).setValue(plant).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                @Override
-                                                public void onSuccess(Void unused) {
-                                                    progressDialog.dismiss();
-                                                    dialogInterface.dismiss();
-                                                    Toast.makeText(PlantList.this,"saved succefully",Toast.LENGTH_SHORT).show();
-                                                }
-                                            }).addOnFailureListener(new OnFailureListener() {
-                                                @Override
-                                                public void onFailure(@NonNull Exception e) {
-                                                    progressDialog.dismiss();
-                                                    Toast.makeText(PlantList.this,"save failed",Toast.LENGTH_SHORT).show();
-                                                }
-                                            });
-                                        }
-
-                                    }
-                                })
-                                .setNeutralButton("close", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        dialogInterface.dismiss();
-                                    }
-                                })
-                                .setNegativeButton("delete", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        progressDialog.setTitle("Deleting");
-                                        progressDialog.show();
-                                        database.getReference().child("plants").child(plant.getKey()).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                    @Override
-                                                    public void onSuccess(Void unused) {
-                                                        progressDialog.dismiss();
-                                                        Toast.makeText(PlantList.this,"Deleted Succefully",Toast.LENGTH_SHORT).show();
-                                                    }
-                                                })
-                                                .addOnFailureListener(new OnFailureListener() {
-                                                    @Override
-                                                    public void onFailure(@NonNull Exception e) {
-                                                        progressDialog.dismiss();
-                                                    }
-                                                });
-                                    }
-                                }).create();
-                        alertDialog.show();
+            userPlantsRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    ArrayList<Plant> arraylist = new ArrayList<>();
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                        Plant plant = dataSnapshot.getValue(Plant.class);
+                        Objects.requireNonNull(plant).setKey(dataSnapshot.getKey());
+                        arraylist.add(plant);
                     }
-                });
-            }
+                    adapter.updateData(arraylist); // Assuming your adapter has a method to update its data
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+                    if (arraylist.isEmpty()) {
+                        empty.setVisibility(View.VISIBLE);
+                        recyclerView.setVisibility(View.GONE);
+                    } else {
+                        empty.setVisibility(View.GONE);
+                        recyclerView.setVisibility(View.VISIBLE);
+                    }
+                }
 
-            }
-        });
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(PlantList.this, "Failed to load plants", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
 
+        add.setOnClickListener(view -> openCamera());
     }
+
     private void schedulePlantNotification(Plant plant) {
         Calendar calendar = parseTimeToCalendar(plant.getTime());
         if (calendar != null) {
@@ -242,15 +143,18 @@ public class PlantList extends AppCompatActivity {
 
 
 
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("CameraResult", "Request code: " + requestCode + ", Result code: " + resultCode);
-
-
-            showAddPlantDialog(imageUri.toString());
-
+        if (requestCode == IMAGE_CAPTURE_CODE && resultCode == RESULT_OK) {
+            // imageUri is already set in the launchCamera method
+            showAddPlantDialog();
+        } else {
+            imageUri = null; // Reset or handle the case where image capture failed
+        }
     }
-    private void showAddPlantDialog(String imageUri) {
+
+    private void showAddPlantDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.add_plant_dialog, null);
         TextInputEditText etName = dialogView.findViewById(R.id.et_name);
@@ -264,20 +168,54 @@ public class PlantList extends AppCompatActivity {
                     String time = etTime.getText().toString();
                     int waterAmount = Integer.parseInt(etWaterAmount.getText().toString());
 
-                    Plant plant = new Plant();
-                    plant.setName(name);
-                    plant.setPlace(place);
-                    plant.setTime(time);
-                    plant.setWateramount(waterAmount);
-                    plant.setImageUrl(imageUri);
+                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                    if (user != null) {
+                        String userId = user.getUid();
+                        DatabaseReference userPlantsRef = FirebaseDatabase.getInstance().getReference()
+                                .child("users").child(userId).child("plants");
+                        String plantId = userPlantsRef.push().getKey(); // Create a new plant ID
+                        Plant plant = new Plant(name, place, time, waterAmount, ""); // Assuming you have a constructor and handling image separately
+                        if (imageUri != null) {
+                            plant.setImageUrl(imageUri.toString());
+                            imageUri = null; // Reset imageUri after use
+                        } else {
+                            plant.setImageUrl(""); // Set a default or placeholder image URL
+                        }
 
-                    FirebaseDatabase.getInstance().getReference().child("plants").push().setValue(plant);
+                        userPlantsRef.child(plantId).setValue(plant)
+                                .addOnSuccessListener(aVoid -> {
+                                    Toast.makeText(PlantList.this, "Plant added successfully", Toast.LENGTH_SHORT).show();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(PlantList.this, "Failed to add plant", Toast.LENGTH_SHORT).show();
+                                });
+                    }
+
                     dialogInterface.dismiss();
                 })
-                .setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.cancel())
+                .setNegativeButton("Cancel", (dialogInterface, i) -> {
+                    imageUri = null; // Reset imageUri if cancelled
+                    dialogInterface.cancel();
+                })
                 .show();
     }
 
+
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == MY_PERMISSIONS_REQUEST_CAMERA) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission was granted
+                launchCamera();
+            } else {
+                // Permission denied
+                Toast.makeText(this, "Camera permission is necessary", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
     private void openCamera() {
         // Check both CAMERA and WRITE_EXTERNAL_STORAGE permissions
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
@@ -291,19 +229,6 @@ public class PlantList extends AppCompatActivity {
         } else {
             // Permission has already been granted, open the camera
             launchCamera();
-        }
-    }
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == MY_PERMISSIONS_REQUEST_CAMERA) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission was granted
-                launchCamera();
-            } else {
-                // Permission denied
-                Toast.makeText(this, "Camera permission is necessary", Toast.LENGTH_SHORT).show();
-            }
         }
     }
     private void launchCamera() {
