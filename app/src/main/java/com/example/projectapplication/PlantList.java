@@ -1,5 +1,9 @@
 package com.example.projectapplication;
 
+import static android.Manifest.permission.POST_NOTIFICATIONS;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -59,14 +63,26 @@ public class PlantList extends AppCompatActivity {
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 102;
     private FirebaseAuth auth;  // Added Firebase Auth for user-specific data
     private DatabaseReference userPlantsRef;  // Added to keep reference to user's plants
+
+    private ActivityResultLauncher<String> notificationLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(), isGranted ->{
+        if (!isGranted) {
+            Toast.makeText(PlantList.this, getString(R.string.no_permission), Toast.LENGTH_SHORT).show();
+        }
+    });
+    private ArrayList<Plant> arraylist;
+    private FirebaseDatabase database;
+
+    private FirebaseUser user;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plant_list);
+        notificationLauncher.launch(POST_NOTIFICATIONS);
         FirebaseApp.initializeApp(PlantList.this);
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        database = FirebaseDatabase.getInstance();
         auth = FirebaseAuth.getInstance();  // Initialize FirebaseAuth instance
-        FirebaseUser user = auth.getCurrentUser();  // Get current logged in user
+        user = auth.getCurrentUser();  // Get current logged in user
 
         FloatingActionButton add = findViewById(R.id.addplant);
         TextView empty = findViewById(R.id.empty);
@@ -74,8 +90,14 @@ public class PlantList extends AppCompatActivity {
         PlantAdapter adapter = new PlantAdapter(PlantList.this, new ArrayList<Plant>());
         adapter.setOnItemClickListener(new PlantAdapter.OnItemClickListener() {
             @Override
-            public void onClick(Plant plant) {
+            public void onClick(int position, Plant plant) {
                 showAddPlantDialog(plant);
+            }
+        });
+        adapter.setDeleteClickListener(new PlantAdapter.OnItemClickListener() {
+            @Override
+            public void onClick(int position, Plant plant) {
+                deleteItem(position, plant);
             }
         });
         recyclerView.setAdapter(adapter);
@@ -86,7 +108,7 @@ public class PlantList extends AppCompatActivity {
             userPlantsRef.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    ArrayList<Plant> arraylist = new ArrayList<>();
+                     arraylist = new ArrayList<Plant>();
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                         Plant plant = dataSnapshot.getValue(Plant.class);
                         Objects.requireNonNull(plant).setKey(dataSnapshot.getKey());
@@ -113,6 +135,17 @@ public class PlantList extends AppCompatActivity {
         add.setOnClickListener(view -> openCamera());
     }
 
+    private void deleteItem(int position, Plant plant) {
+        arraylist.remove(position);
+        database.getReference().child("users").child(user.getUid()).child("plants")
+                .child(plant.getKey()).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Toast.makeText(PlantList.this, getString(R.string.remove_item), Toast.LENGTH_SHORT).show();
+                    }
+                });  // Change to user-specific path
+    }
+
     private void schedulePlantNotification(Plant plant) {
         Calendar calendar = parseTimeToCalendar(plant.getTime());
         if (calendar != null) {
@@ -125,7 +158,9 @@ public class PlantList extends AppCompatActivity {
                     this, plant.getKey().hashCode(), alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-            alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), alarmPendingIntent);
+            try{
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), alarmPendingIntent);
+            }catch (SecurityException e){}
         }
     }
 

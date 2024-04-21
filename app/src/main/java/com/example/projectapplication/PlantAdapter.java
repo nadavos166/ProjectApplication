@@ -18,6 +18,8 @@ public class PlantAdapter extends RecyclerView.Adapter<PlantAdapter.ViewHolder> 
     Context context;
     ArrayList<Plant> arraylist;
     OnItemClickListener onItemClickListener;
+    private OnItemClickListener deleteListener;
+
     public PlantAdapter(Context context, ArrayList<Plant> arraylist){
         this.context=context;
         this.arraylist=arraylist;
@@ -45,9 +47,10 @@ public class PlantAdapter extends RecyclerView.Adapter<PlantAdapter.ViewHolder> 
         }
         holder.itemView.setOnClickListener(view -> {
             if (onItemClickListener != null) {
-                onItemClickListener.onClick(plant);
+                onItemClickListener.onClick(position, plant);
             }
         });
+        holder.delete.setOnClickListener(v->deleteListener.onClick(position, plant));
 
     }
 
@@ -61,7 +64,7 @@ public class PlantAdapter extends RecyclerView.Adapter<PlantAdapter.ViewHolder> 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView name,place,water;
         TextView time;
-        public ImageView imageView;
+        public ImageView imageView, delete;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -70,6 +73,7 @@ public class PlantAdapter extends RecyclerView.Adapter<PlantAdapter.ViewHolder> 
             water=itemView.findViewById(R.id.list_item_wateramount);
             time=itemView.findViewById(R.id.list_item_time);
             imageView=itemView.findViewById(R.id.imageofplant);
+            delete=itemView.findViewById(R.id.delete);
         }
     }
 
@@ -77,8 +81,12 @@ public class PlantAdapter extends RecyclerView.Adapter<PlantAdapter.ViewHolder> 
         this.onItemClickListener = onItemClickListener;
     }
 
+    public void setDeleteClickListener(OnItemClickListener deleteListener) {
+        this.deleteListener = deleteListener;
+    }
+
     public interface OnItemClickListener {
-        void onClick(Plant plant);
+        void onClick(int position, Plant plant);
     }
     public void updateData(ArrayList<Plant> plants) {
         this.arraylist = plants;

@@ -104,7 +104,7 @@ public class Plant
             if (date != null) {
                 calendar.clear();
                 calendar.setTimeInMillis(this.date);
-                calendar.set(Calendar.HOUR, date.getHours());
+                calendar.set(Calendar.HOUR_OF_DAY, date.getHours());
                 calendar.set(Calendar.MINUTE, date.getMinutes());
             }
             return calendar;

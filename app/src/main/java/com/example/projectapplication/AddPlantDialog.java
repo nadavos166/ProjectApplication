@@ -100,6 +100,7 @@ public class AddPlantDialog extends DialogFragment{
                                 .addOnSuccessListener(aVoid -> {
                                     registerToAlert(plant);
                                     Toast.makeText(getActivity(), "Plant added successfully", Toast.LENGTH_SHORT).show();
+                                    dismiss();
                                 })
                                 .addOnFailureListener(e -> {
                                     Toast.makeText(getActivity(), "Failed to add plant", Toast.LENGTH_SHORT).show();
@@ -154,7 +155,7 @@ public class AddPlantDialog extends DialogFragment{
     @Override
     public void onStart() {
         super.onStart();
-        getDialog().getWindow().setLayout(ViewGroup.MarginLayoutParams.MATCH_PARENT, ViewGroup.MarginLayoutParams.WRAP_CONTENT);
+        getDialog().getWindow().setLayout(ViewGroup.MarginLayoutParams.MATCH_PARENT, ViewGroup.MarginLayoutParams.MATCH_PARENT);
 
     }
 }
