@@ -1,5 +1,4 @@
 package com.example.projectapplication;
-
 import static android.Manifest.permission.POST_NOTIFICATIONS;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -55,27 +54,28 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
-
-public class PlantList extends AppCompatActivity {
+public class PlantList extends AppCompatActivity
+{
     private Uri imageUri;
     private static final int IMAGE_CAPTURE_CODE = 100;
     private static final int IMAGE_PICK_CODE = 101; // Adding this line for gallery
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 102;
     private FirebaseAuth auth;  // Added Firebase Auth for user-specific data
     private DatabaseReference userPlantsRef;  // Added to keep reference to user's plants
-
     private ActivityResultLauncher<String> notificationLauncher = registerForActivityResult(
-            new ActivityResultContracts.RequestPermission(), isGranted ->{
-        if (!isGranted) {
+            new ActivityResultContracts.RequestPermission(), isGranted ->
+            {
+        if (!isGranted)
+        {
             Toast.makeText(PlantList.this, getString(R.string.no_permission), Toast.LENGTH_SHORT).show();
         }
     });
     private ArrayList<Plant> arraylist;
     private FirebaseDatabase database;
-
     private FirebaseUser user;
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plant_list);
         notificationLauncher.launch(POST_NOTIFICATIONS);
@@ -83,40 +83,45 @@ public class PlantList extends AppCompatActivity {
         database = FirebaseDatabase.getInstance();
         auth = FirebaseAuth.getInstance();  // Initialize FirebaseAuth instance
         user = auth.getCurrentUser();  // Get current logged in user
-
         FloatingActionButton add = findViewById(R.id.addplant);
         TextView empty = findViewById(R.id.empty);
         RecyclerView recyclerView = findViewById(R.id.recycler);
         PlantAdapter adapter = new PlantAdapter(PlantList.this, new ArrayList<Plant>());
-        adapter.setOnItemClickListener(new PlantAdapter.OnItemClickListener() {
+        adapter.setOnItemClickListener(new PlantAdapter.OnItemClickListener()
+        {
             @Override
-            public void onClick(int position, Plant plant) {
+            public void onClick(int position, Plant plant)
+            {
                 showAddPlantDialog(plant);
             }
         });
-        adapter.setDeleteClickListener(new PlantAdapter.OnItemClickListener() {
+        adapter.setDeleteClickListener(new PlantAdapter.OnItemClickListener()
+        {
             @Override
-            public void onClick(int position, Plant plant) {
+            public void onClick(int position, Plant plant)
+            {
                 deleteItem(position, plant);
             }
         });
         recyclerView.setAdapter(adapter);
-
-        if (user != null) {
+        if (user != null)
+        {
             userPlantsRef = database.getReference().child("users").child(user.getUid()).child("plants");  // Change to user-specific path
-
-            userPlantsRef.addValueEventListener(new ValueEventListener() {
+            userPlantsRef.addValueEventListener(new ValueEventListener()
+            {
                 @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                public void onDataChange(@NonNull DataSnapshot snapshot)
+                {
                      arraylist = new ArrayList<Plant>();
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren())
+                    {
                         Plant plant = dataSnapshot.getValue(Plant.class);
                         Objects.requireNonNull(plant).setKey(dataSnapshot.getKey());
                         arraylist.add(plant);
                     }
-                    adapter.updateData(arraylist); // Assuming your adapter has a method to update its data
-
-                    if (arraylist.isEmpty()) {
+                    adapter.updateData(arraylist);
+                    if (arraylist.isEmpty())
+                    {
                         empty.setVisibility(View.VISIBLE);
                         recyclerView.setVisibility(View.GONE);
                     } else {

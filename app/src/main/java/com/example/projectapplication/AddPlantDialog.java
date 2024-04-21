@@ -30,31 +30,31 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Calendar;
 
-public class AddPlantDialog extends DialogFragment{
-
+public class AddPlantDialog extends DialogFragment
+{
     TextInputEditText etName ;
     TextInputEditText etPlace ;
     TextInputEditText etTime ;
     TextInputEditText etWaterAmount ;
     TextInputEditText dateEt;
     private Calendar selectedDate;
-
     private Uri imageUri;
-
     private Plant plant;
-
-    public AddPlantDialog(Uri imageUri, Plant plant){
+    public AddPlantDialog(Uri imageUri, Plant plant)
+    {
         this.imageUri = imageUri;
         this.plant = plant;
     }
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
+    {
         return LayoutInflater.from(getContext()).inflate(R.layout.add_plant_dialog, container, false);
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
+    {
         super.onViewCreated(view, savedInstanceState);
          etName = view.findViewById(R.id.et_name);
          etPlace = view.findViewById(R.id.et_place);
@@ -74,9 +74,11 @@ public class AddPlantDialog extends DialogFragment{
         }
     }
 
-    private void savePlant() {
+    private void savePlant()
+    {
         new AlertDialog.Builder(getActivity())
-                .setPositiveButton("Add", (dialogInterface, i) -> {
+                .setPositiveButton("Add", (dialogInterface, i) ->
+                {
                     String name = etName.getText().toString();
                     String place = etPlace.getText().toString();
                     String time = etTime.getText().toString();
@@ -89,35 +91,41 @@ public class AddPlantDialog extends DialogFragment{
                                 .child("users").child(userId).child("plants");
                         String plantId = userPlantsRef.push().getKey(); // Create a new plant ID
                         Plant plant = new Plant(name, place, selectedDate.getTimeInMillis(), time, waterAmount, ""); // Assuming you have a constructor and handling image separately
-                        if (imageUri != null) {
+                        if (imageUri != null)
+                        {
                             plant.setImageUrl(imageUri.toString());
                             imageUri = null; // Reset imageUri after use
-                        } else {
+                        } else
+                        {
                             plant.setImageUrl(""); // Set a default or placeholder image URL
                         }
 
                         userPlantsRef.child(plantId).setValue(plant)
-                                .addOnSuccessListener(aVoid -> {
+                                .addOnSuccessListener(aVoid ->
+                                {
                                     registerToAlert(plant);
                                     Toast.makeText(getActivity(), "Plant added successfully", Toast.LENGTH_SHORT).show();
                                     dismiss();
                                 })
-                                .addOnFailureListener(e -> {
+                                .addOnFailureListener(e ->
+                                {
                                     Toast.makeText(getActivity(), "Failed to add plant", Toast.LENGTH_SHORT).show();
                                 });
                     }
-
                     dialogInterface.dismiss();
                 })
-                .setNegativeButton("Cancel", (dialogInterface, i) -> {
+                .setNegativeButton("Cancel", (dialogInterface, i) ->
+                {
                     imageUri = null; // Reset imageUri if cancelled
                     dialogInterface.cancel();
                 }).show();
     }
 
-    private void registerToAlert(Plant plant) {
+    private void registerToAlert(Plant plant)
+    {
         Calendar calendar = plant.parseDateToCalendar();
-        if (calendar != null) {
+        if (calendar != null)
+        {
             Intent alarmIntent = new Intent(getActivity(), AlarmReceiver.class);
             alarmIntent.putExtra("PLANT_NAME", plant.getName());
             alarmIntent.putExtra("PLANT_PLACE", plant.getPlace());
@@ -128,21 +136,25 @@ public class AddPlantDialog extends DialogFragment{
 
             AlarmManager alarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
 
-            try {
+            try
+            {
                 alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), alarmPendingIntent);
 
-            }catch (Exception e){
+            }catch (Exception e)
+            {
 
             }
         }
     }
-
-    private void openDatePicker() {
+    private void openDatePicker()
+    {
         Calendar calendar = Calendar.getInstance();
 
-        DatePickerDialog datePickerDialog = new DatePickerDialog(getContext(), new DatePickerDialog.OnDateSetListener() {
+        DatePickerDialog datePickerDialog = new DatePickerDialog(getContext(), new DatePickerDialog.OnDateSetListener()
+        {
             @Override
-            public void onDateSet(DatePicker datePicker, int i, int i1, int i2) {
+            public void onDateSet(DatePicker datePicker, int i, int i1, int i2)
+            {
                 selectedDate.clear();
                 selectedDate.set(i, i1, i2);
                 dateEt.setText(i+"/"+i1+"/"+i2);
@@ -153,7 +165,8 @@ public class AddPlantDialog extends DialogFragment{
     }
 
     @Override
-    public void onStart() {
+    public void onStart()
+    {
         super.onStart();
         getDialog().getWindow().setLayout(ViewGroup.MarginLayoutParams.MATCH_PARENT, ViewGroup.MarginLayoutParams.MATCH_PARENT);
 

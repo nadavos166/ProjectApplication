@@ -36,59 +36,61 @@ import com.google.firebase.auth.GoogleAuthProvider;
 
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity
+{
     FirebaseAuth auth;
     GoogleSignInClient googleSignInClient;
     ShapeableImageView iamgeview;
     TextView name,mail;
-
-
-    private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+    private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>()
+    {
         @Override
-        public void onActivityResult(ActivityResult result) {
+        public void onActivityResult(ActivityResult result)
+        {
             Log.e("XXXXXXXXXXX", "+onActivityResult");
             if(result.getResultCode() == RESULT_OK){
                 Log.e("XXXXXXXXXXX", "+RESULT_OK");
                 Task<GoogleSignInAccount> accountTask = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
-                try{
+                try
+                {
                     GoogleSignInAccount signInAccount = accountTask.getResult(ApiException.class);
                     AuthCredential authCredential = GoogleAuthProvider.getCredential(signInAccount.getIdToken(),null);
-
                     Log.e("XXXXXXXXXXX", "+authCredential");
-
                     Log.e("XXXXXXXXXXX", authCredential.toString());
-
-                    auth.signInWithCredential(authCredential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    auth.signInWithCredential(authCredential).addOnCompleteListener(new OnCompleteListener<AuthResult>()
+                    {
                         @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
+                        public void onComplete(@NonNull Task<AuthResult> task)
+                        {
                             Log.e("XXXXXXXXXXX", "+onComplete");
-
                             if(task.isSuccessful()){
                                 Log.e("XXXXXXXXXXX", "+isSuccessful");
-
                                 auth = FirebaseAuth.getInstance();
                                 Glide.with(MainActivity.this).load(Objects.requireNonNull(auth.getCurrentUser()).getPhotoUrl()).into(iamgeview);
                                 name.setText(auth.getCurrentUser().getDisplayName());
                                 mail.setText(auth.getCurrentUser().getEmail());
                                 Toast.makeText(MainActivity.this,"signed in succefully",Toast.LENGTH_SHORT).show();
-                            } else{
+                            } else
+                            {
                                 Log.e("XXXXXXXXXXX", "+failed");
-
                                 Toast.makeText(MainActivity.this,"signed in failed" + task.getException(),Toast.LENGTH_SHORT).show();
                             }
                         }
                     });
-                } catch (ApiException e) {
+                } catch (ApiException e)
+                {
                     e.printStackTrace();
                 }
-            }else{
+            }else
+            {
                 Log.e("XXXXXXXXXXX",result.toString());
             }
         }
     });
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         FirebaseApp.initializeApp(this);
@@ -102,7 +104,8 @@ public class MainActivity extends AppCompatActivity {
         googleSignInClient= GoogleSignIn.getClient(MainActivity.this,options);
         auth = FirebaseAuth.getInstance();
         SignInButton signInButton = findViewById(R.id.signIn);
-        signInButton.setOnClickListener(new View.OnClickListener() {
+        signInButton.setOnClickListener(new View.OnClickListener()
+        {
             @Override
             public void onClick(View view) {
                 Intent intent = googleSignInClient.getSignInIntent();
@@ -112,16 +115,23 @@ public class MainActivity extends AppCompatActivity {
         Button plantlistbutton;
         plantlistbutton =findViewById(R.id.btn_gotoplantlist);
         MaterialButton signout = findViewById(R.id.signOut);
-        signout.setOnClickListener(new View.OnClickListener() {
+        signout.setOnClickListener(new View.OnClickListener()
+        {
             @Override
-            public void onClick(View view) {
-                FirebaseAuth.getInstance().addAuthStateListener(new FirebaseAuth.AuthStateListener() {
+            public void onClick(View view)
+            {
+                FirebaseAuth.getInstance().addAuthStateListener(new FirebaseAuth.AuthStateListener()
+                {
                     @Override
-                    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                        if(firebaseAuth.getCurrentUser()==null){
-                            googleSignInClient.signOut().addOnSuccessListener(new OnSuccessListener<Void>() {
+                    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth)
+                    {
+                        if(firebaseAuth.getCurrentUser()==null)
+                        {
+                            googleSignInClient.signOut().addOnSuccessListener(new OnSuccessListener<Void>()
+                            {
                                 @Override
-                                public void onSuccess(Void unused) {
+                                public void onSuccess(Void unused)
+                                {
                                     Toast.makeText(MainActivity.this,"signed out succefully",Toast.LENGTH_SHORT).show();
                                     startActivity(new Intent(MainActivity.this,MainActivity.class));
                                 }
@@ -132,16 +142,20 @@ public class MainActivity extends AppCompatActivity {
                 FirebaseAuth.getInstance().signOut();
             }
         });
-        plantlistbutton.setOnClickListener(new View.OnClickListener() {
+        plantlistbutton.setOnClickListener(new View.OnClickListener()
+        {
             @Override
-            public void onClick(View view) {
-                if(auth.getCurrentUser() != null){
+            public void onClick(View view)
+            {
+                if(auth.getCurrentUser() != null)
+                {
                     Intent intent = new Intent(MainActivity.this, PlantList.class);
                     startActivity(intent);
                 }
             }
         });
-        if(auth.getCurrentUser() != null){
+        if(auth.getCurrentUser() != null)
+        {
             Glide.with(MainActivity.this).load(Objects.requireNonNull(auth.getCurrentUser()).getPhotoUrl()).into(iamgeview);
             name.setText(auth.getCurrentUser().getDisplayName());
             mail.setText(auth.getCurrentUser().getEmail());

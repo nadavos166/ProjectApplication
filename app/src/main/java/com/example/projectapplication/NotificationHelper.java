@@ -8,14 +8,17 @@ import android.os.Build;
 
 import androidx.core.app.NotificationCompat;
 
-public class NotificationHelper {
+public class NotificationHelper
+{
 
-    public static void showNotification(Context context, String title, String content, Uri imageUrl) {
+    public static void showNotification(Context context, String title, String content, Uri imageUrl)
+    {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
             CharSequence name = "Plant Channel";
             String description = "Channel for Plant Alarm";
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
