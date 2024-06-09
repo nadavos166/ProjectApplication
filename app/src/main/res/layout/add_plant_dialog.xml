@@ -75,7 +75,7 @@
         android:layout_marginTop="10sp"
         android:layout_marginStart="10sp"
         android:layout_marginEnd="10sp"
-        android:hint="enter water amount"
+        android:hint="enter water amount(ml)"
         android:id="@+id/wateramountlayout">
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"

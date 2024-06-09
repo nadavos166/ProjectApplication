@@ -58,10 +58,12 @@ public class PlantList extends AppCompatActivity
 {
     private Uri imageUri;
     private static final int IMAGE_CAPTURE_CODE = 100;
-    private static final int IMAGE_PICK_CODE = 101; // Adding this line for gallery
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 102;
     private FirebaseAuth auth;  // Added Firebase Auth for user-specific data
     private DatabaseReference userPlantsRef;  // Added to keep reference to user's plants
+    private ArrayList<Plant> arraylist;
+    private FirebaseDatabase database;
+    private FirebaseUser user;
     private ActivityResultLauncher<String> notificationLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(), isGranted ->
             {
@@ -70,9 +72,7 @@ public class PlantList extends AppCompatActivity
             Toast.makeText(PlantList.this, getString(R.string.no_permission), Toast.LENGTH_SHORT).show();
         }
     });
-    private ArrayList<Plant> arraylist;
-    private FirebaseDatabase database;
-    private FirebaseUser user;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
